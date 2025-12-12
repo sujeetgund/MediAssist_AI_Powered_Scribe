@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MediAssist Patient Intake Form - Secure Medical Check-In">
+    <meta name="theme-color" content="#0052cc">
+    <title>MediAssist | Patient Intake Form</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-heartbeat"></i>
+            <span>MediAssist <small class="text-muted">Check-In</small></span>
+        </a>
+        <a href="/patient/logout" class="btn btn-outline-secondary btn-sm" aria-label="Exit to home page">
+            <i class="fas fa-arrow-left me-1"></i> Exit
+        </a>
+    </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            
+            <!-- HERO SECTION -->
+            <div class="hero-section">
+                <h2 id="heroTitle">
+                    <i class="fas fa-clipboard-user me-2"></i>
+                    Begin Your Clinical Check-In
+                </h2>
+                <p id="heroDesc">
+                    This pre-visit intake will help your doctor prepare for your appointment. 
+                    Please answer honestly and thoroughly.
+                </p>
+            </div>
+
+            <!-- LANGUAGE SELECTOR -->
+            <div class="d-flex justify-content-end mb-4">
+                <div style="max-width: 180px;">
+                    <label for="languageSelect" class="form-label small mb-2">Interface Language:</label>
+                    <select class="form-select form-select-sm" id="languageSelect" onchange="switchLanguage(this.value)" aria-label="Select interface language">
+                        <option value="English" selected>🇬🇧 English</option>
+                        <option value="Hindi">🇮🇳 हिन्दी (Hindi)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- FORM CARD -->
+            <form id="intake" action="/patient/submit" method="POST" class="form-card" novalidate>
+                <!-- Hidden language input for backend -->
+                <input type="hidden" name="language" id="hiddenLanguage" value="English">
+
+                <div class="row g-3">
+
+                    <!-- ===== DOCTOR SELECTION ===== -->
+                    <div class="col-12">
+                        <div class="form-row-label" id="sectionDoctor">👨‍⚕️ Select Your Doctor</div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="selectDoctor" class="form-label" id="lbl_doctor">Which doctor are you visiting?</label>
+                        <select id="selectDoctor" name="doctor_id" class="form-select" required>
+                            <option value="">-- Select a Doctor --</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">{{ doctor.name }} - {{ doctor.specialty }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Your case will be reviewed by this provider</small>
+                    </div>
+
+                    <!-- ===== DEMOGRAPHICS SECTION ===== -->
+                    <div class="col-12">
+                        <div class="form-row-label" id="sectionDemographics">👤 Personal Information</div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="inputName" class="form-label" id="lbl_name">Full Name</label>
+                        <input type="text" id="inputName" name="name" class="form-control" placeholder="Enter your full name" required>
+                        <small class="form-text text-muted">As shown on your ID</small>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <label for="inputAge" class="form-label" id="lbl_age">Age <span class="req">*</span></label>
+                        <input type="number" id="inputAge" name="age" class="form-control" min="0" max="150" required aria-describedby="ageHelp">
+                        <small id="ageHelp" class="form-text text-muted">In years</small>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <label for="selectGender" class="form-label" id="lbl_gender">Gender</label>
+                        <select id="selectGender" name="gender" class="form-select">
+                            <option>Female</option>
+                            <option>Male</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <!-- ===== VITALS SECTION ===== -->
+                    <div class="col-12 mt-2">
+                        <div class="form-row-label" id="sectionVitals">📊 Vital Signs</div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <label for="inputWeight" class="form-label" id="lbl_weight">Weight (kg)</label>
+                        <input type="number" id="inputWeight" name="weight" class="form-control" min="0" step="0.1" placeholder="e.g. 70">
+                    </div>
+
+                    <div class="col-sm-4">
+                        <label for="inputHeight" class="form-label" id="lbl_height">Height (cm)</label>
+                        <input type="number" id="inputHeight" name="height" class="form-control" min="0" step="0.1" placeholder="e.g. 175">
+                    </div>
+
+                    <div class="col-sm-4">
+                        <label for="inputTemp" class="form-label" id="lbl_temp">Temperature (°C)</label>
+                        <input type="number" id="inputTemp" name="temperature" class="form-control" min="30" max="45" step="0.1" placeholder="37.0">
+                        <small class="form-text text-muted">Normal: ~37°C</small>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="inputBP" class="form-label" id="lbl_bp">Blood Pressure (optional)</label>
+                        <input type="text" id="inputBP" name="blood_pressure" class="form-control" placeholder="e.g. 120/80">
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="inputDuration" class="form-label" id="lbl_duration">Duration <span class="req">*</span></label>
+                        <input type="text" id="inputDuration" name="duration" class="form-control" placeholder="e.g. 2 days, 1 week" required>
+                    </div>
+
+                    <!-- ===== MEDICAL HISTORY SECTION ===== -->
+                    <div class="col-12 mt-2">
+                        <div class="form-row-label" id="sectionMedical">⚕️ Medical Information</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="inputAllergies" class="form-label" id="lbl_allergies">Allergies <span class="req">*</span></label>
+                        <input type="text" id="inputAllergies" name="allergies" class="form-control" placeholder="e.g. Penicillin, Peanuts, or 'None'" required aria-describedby="allergiesHelp">
+                        <small id="allergiesHelp" class="form-text text-muted">Critical for prescribing safety</small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="inputMeds" class="form-label" id="lbl_meds">Current Medications <span class="req">*</span></label>
+                        <input type="text" id="inputMeds" name="current_medications" class="form-control" placeholder="e.g. Aspirin 100mg daily, or 'None'" required aria-describedby="medsHelp">
+                        <small id="medsHelp" class="form-text text-muted">Include dosage if known</small>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="inputHistory" class="form-label" id="lbl_history">Past Medical History</label>
+                        <input type="text" id="inputHistory" name="medical_history" class="form-control" placeholder="e.g. Asthma, Diabetes, Hypertension">
+                        <small class="form-text text-muted">Chronic conditions or previous surgeries</small>
+                    </div>
+
+                    <!-- ===== CHIEF COMPLAINT SECTION ===== -->
+                    <div class="col-12 mt-2">
+                        <div class="form-row-label" id="sectionComplaint">🏥 Chief Complaint</div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="selectSeverity" class="form-label" id="lbl_severity">Symptom Severity</label>
+                        <select id="selectSeverity" name="severity" class="form-select">
+                            <option>Mild (Annoying but manageable)</option>
+                            <option selected>Moderate (Interferes with daily activities)</option>
+                            <option>Severe (Unable to function)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="textSymptoms" class="form-label" id="lbl_symptoms">Describe Your Symptoms <span class="req">*</span></label>
+                        <textarea id="textSymptoms" name="symptoms" class="form-control" rows="5" placeholder="Please describe what you are experiencing, when it started, and how it affects you..." required></textarea>
+                        <small class="form-text text-muted">Be as detailed as possible. Include location, timing, and associated symptoms.</small>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="inputNotes" class="form-label" id="lbl_notes">Additional Notes</label>
+                        <input type="text" id="inputNotes" name="other_notes" class="form-control" placeholder="Anything else you'd like the doctor to know?">
+                    </div>
+
+                    <!-- ===== SUBMIT BUTTON ===== -->
+                    <div class="col-12 text-center mt-4">
+                        <button type="submit" class="btn-medical w-100" id="btnSubmit">
+                            <i class="fas fa-wand-magic-sparkles me-2"></i>
+                            <span id="btnText">Generate Clinical Summary</span>
+                        </button>
+                        <p class="mt-3 small text-muted" id="lbl_wait">
+                            <i class="fas fa-hourglass-half me-1"></i>
+                            This may take 5–10 seconds to process. Please wait...
+                        </p>
+                    </div>
+                </div>
+            </form>
+
+            <!-- DISCLAIMER -->
+            <div class="alert alert-info small mt-4 text-center" role="alert">
+                <i class="fas fa-shield-alt me-1"></i>
+                <strong>Privacy & Security:</strong> Your information is encrypted and used only for clinical purposes. 
+                <a href="#" class="alert-link">Learn more</a>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- SCRIPTS -->
+<script>
+    /* ===== INTERNATIONALIZATION (i18n) ===== */
+    const TRANSLATIONS = {
+        'Hindi': {
+            'heroTitle': '<i class="fas fa-clipboard-user me-2"></i>अपनी क्लिनिकल चेक-इन शुरू करें',
+            'heroDesc': 'यह प्री-विजिट इनटेक आपके डॉक्टर को आपकी मुलाकात के लिए तैयार करने में मदद करेगा। कृपया ईमानदारी से और विस्तार से उत्तर दें।',
+            'sectionDoctor': '👨‍⚕️ अपने डॉक्टर का चयन करें',
+            'sectionDemographics': '👤 व्यक्तिगत जानकारी',
+            'sectionVitals': '📊 महत्वपूर्ण संकेत',
+            'sectionMedical': '⚕️ चिकित्सीय जानकारी',
+            'sectionComplaint': '🏥 मुख्य शिकायत',
+            'lbl_name': 'पूरा नाम',
+            'lbl_age': 'उम्र <span class="req">*</span>',
+            'lbl_gender': 'लिंग',
+            'lbl_weight': 'वजन (kg)',
+            'lbl_height': 'लंबाई (cm)',
+            'lbl_temp': 'तापमान (°C)',
+            'lbl_bp': 'रक्तचाप (BP)',
+            'lbl_duration': 'यह कितने समय से है? <span class="req">*</span>',
+            'lbl_allergies': 'एलर्जी <span class="req">*</span>',
+            'lbl_meds': 'वर्तमान दवाएं <span class="req">*</span>',
+            'lbl_history': 'पिछला चिकित्सीय इतिहास',
+            'lbl_severity': 'लक्षणों की गंभीरता',
+            'lbl_symptoms': 'अपने लक्षणों का वर्णन करें <span class="req">*</span>',
+            'lbl_notes': 'अतिरिक्त नोट्स',
+            'btnSubmit': '<i class="fas fa-wand-magic-sparkles me-2"></i><span>सारांश बनाएं</span>',
+            'lbl_wait': '<i class="fas fa-hourglass-half me-1"></i>इसमें 5–10 सेकंड लग सकते हैं। कृपया प्रतीक्षा करें...'
+        },
+        'English': {
+            'heroTitle': '<i class="fas fa-clipboard-user me-2"></i>Begin Your Clinical Check-In',
+            'heroDesc': 'This pre-visit intake will help your doctor prepare for your appointment. Please answer honestly and thoroughly.',
+            'sectionDoctor': '👨‍⚕️ Select Your Doctor',
+            'sectionDemographics': '👤 Personal Information',
+            'sectionVitals': '📊 Vital Signs',
+            'sectionMedical': '⚕️ Medical Information',
+            'sectionComplaint': '🏥 Chief Complaint',
+            'lbl_name': 'Full Name',
+            'lbl_age': 'Age <span class="req">*</span>',
+            'lbl_gender': 'Gender',
+            'lbl_weight': 'Weight (kg)',
+            'lbl_height': 'Height (cm)',
+            'lbl_temp': 'Temperature (°C)',
+            'lbl_bp': 'Blood Pressure (optional)',
+            'lbl_duration': 'Duration <span class="req">*</span>',
+            'lbl_allergies': 'Allergies <span class="req">*</span>',
+            'lbl_meds': 'Current Medications <span class="req">*</span>',
+            'lbl_history': 'Past Medical History',
+            'lbl_severity': 'Symptom Severity',
+            'lbl_symptoms': 'Describe Your Symptoms <span class="req">*</span>',
+            'lbl_notes': 'Additional Notes',
+            'btnSubmit': '<i class="fas fa-wand-magic-sparkles me-2"></i><span>Generate Clinical Summary</span>',
+            'lbl_wait': '<i class="fas fa-hourglass-half me-1"></i>This may take 5–10 seconds to process. Please wait...'
+        }
+    };
+
+    function switchLanguage(lang) {
+        // Update hidden field for backend
+        document.getElementById('hiddenLanguage').value = lang;
+
+        // Update UI text
+        const textData = TRANSLATIONS[lang];
+        for (const [id, html] of Object.entries(textData)) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = html;
+            }
+        }
+
+        // Update input placeholders
+        if (lang === 'Hindi') {
+            document.getElementById('inputName').placeholder = 'अपना पूरा नाम दर्ज करें';
+            document.getElementById('inputAge').placeholder = 'उदा. 35';
+            document.getElementById('inputWeight').placeholder = 'उदा. 70';
+            document.getElementById('inputHeight').placeholder = 'उदा. 175';
+            document.getElementById('inputBP').placeholder = 'उदा. 120/80';
+            document.getElementById('inputDuration').placeholder = 'उदा. 2 दिन, 1 सप्ताह';
+            document.getElementById('inputAllergies').placeholder = 'उदा. पेनिसिलिन, मूंगफली, या "कोई नहीं"';
+            document.getElementById('inputMeds').placeholder = 'उदा. एस्पिरिन 100 मिग्रा दैनिक, या "कोई नहीं"';
+            document.getElementById('inputHistory').placeholder = 'उदा. अस्थमा, मधुमेह, उच्च रक्तचाप';
+            document.getElementById('textSymptoms').placeholder = 'कृपया विस्तार से बताएं कि आप क्या महसूस कर रहे हैं...';
+            document.getElementById('inputNotes').placeholder = 'डॉक्टर को और क्या जानना चाहिए?';
+        } else {
+            document.getElementById('inputName').placeholder = 'Enter your full name';
+            document.getElementById('inputAge').placeholder = 'In years';
+            document.getElementById('inputWeight').placeholder = 'e.g. 70';
+            document.getElementById('inputHeight').placeholder = 'e.g. 175';
+            document.getElementById('inputBP').placeholder = 'e.g. 120/80';
+            document.getElementById('inputDuration').placeholder = 'e.g. 2 days, 1 week';
+            document.getElementById('inputAllergies').placeholder = 'e.g. Penicillin, Peanuts, or "None"';
+            document.getElementById('inputMeds').placeholder = 'e.g. Aspirin 100mg daily, or "None"';
+            document.getElementById('inputHistory').placeholder = 'e.g. Asthma, Diabetes, Hypertension';
+            document.getElementById('textSymptoms').placeholder = 'Please describe what you are experiencing...';
+            document.getElementById('inputNotes').placeholder = 'Anything else you\'d like the doctor to know?';
+        }
+    }
+
+    /* ===== FORM VALIDATION ===== */
+    document.getElementById('intake').addEventListener('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        this.classList.add('was-validated');
+    });
+
+    /* ===== LOADING STATE ===== */
+    document.getElementById('intake').addEventListener('submit', function() {
+        const btn = document.getElementById('btnSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    });
+</script>
+
+<!-- Bootstrap JS (for form validation tooltips) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

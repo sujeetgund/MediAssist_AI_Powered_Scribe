@@ -1,4 +1,9 @@
+
+---
+
 # 🏥 MediAssist — AI-Powered Clinical Scribe & Patient Communication System
+
+**🔗 Live Demo:** https://drive.google.com/file/d/1OhT6f8fyNhImuS_XcwlQSJv5BnP6Ubje/view?usp=sharing
 
 MediAssist is a full-stack, role-based medical documentation system that converts raw patient symptoms into **dual-purpose clinical intelligence**.
 Using **Google Gemini**, it produces:
@@ -25,48 +30,41 @@ MediAssist introduces a **Dual-Agent Scribe Architecture**:
 
 ### 🔹 1. Dual-View Generation
 
-Gemini generates *two* synchronized outputs from a single intake:
+Gemini generates *two* synchronized outputs:
 
-* **Patient View:** Plain-language, warm, localized summary (Hindi or English)
-* **Doctor View:** Formal SOAP note (always English)
-
-This separation preserves empathy for the patient while ensuring clinical rigor for physicians.
+* **Patient View:** Plain-language summary (Hindi/English)
+* **Doctor View:** Structured SOAP note (English only)
 
 ### 🔹 2. Persistent Case Storage (Local MLOps)
 
-The application maintains historical case records using lightweight CSV databases:
+The system uses simple but effective CSV “databases”:
 
-* **users.csv** — Authentication + RBAC
-* **cases.csv** — Case metadata, raw input, AI output
-
-Structured fields allow doctors to revisit cases and enable reproducible AI behavior.
-(Initialized automatically at first run.) 
+* `users.csv` — Auth + RBAC
+* `cases.csv` — Case metadata + AI outputs
 
 ### 🔹 3. Strict JSON Medical Prompting
 
-A robust JSON-schema prompt enforces:
+The AI always returns:
 
-* Deterministic AI output
-* Bilingual support
-* Medical safety fields
-* Full SOAP structure
-
-This avoids hallucinations and formatting issues while keeping downstream parsing predictable.
+* Deterministic structured JSON
+* SOAP components
+* Safety fields
+* Language-specific responses
 
 ### 🔹 4. Role-Based Access Control (RBAC)
 
-* Patients submit cases
-* Doctors only see cases **explicitly assigned** to them
-* Flask sessions secure access boundaries
+* Patients can only submit cases
+* Doctors only view cases assigned to them
+* Protected Flask sessions maintain identity
 
 ### 🔹 5. Multi-Language Communication (i18n)
 
-The patient-facing output adapts to:
+Supports:
 
 * **Hindi**
 * **English**
 
-Allowing culturally contextual care summaries and improved patient comprehension.
+For culturally contextual patient communication.
 
 ---
 
@@ -80,27 +78,26 @@ Patient Intake → JSON Prompt → Gemini Model → AI Dual Output
  CSV Persistence                   Doctor Dashboard View
 ```
 
-**Key Components (from code):**
+Core elements:
 
-* Flask backend with session-based auth
-* Gemini 2.5 Flash model for real-time generation
-* Automatic log creation (`clinical_logs.csv`) for latency + MLOps metadata
-* UUID-based case tracking
-* Secure password hashing with Werkzeug
-
+* Flask backend
+* Gemini 2.5 Flash model
+* Case logging (`clinical_logs.csv`)
+* Secure password hashing
+* UUID case identifiers
 
 ---
 
 # 🛠️ Features (Engineering Breakdown)
 
-| Feature                       | Description                                    | Tech Keywords                             |
-| ----------------------------- | ---------------------------------------------- | ----------------------------------------- |
-| **Dual-Language Scribing**    | Patient summary (localized) + Doctor SOAP note | Prompt Engineering, NLP, Agentic Workflow |
-| **CSV-Based Local DB**        | Cases + user accounts stored persistently      | MLOps Lite, CSV Persistence, Logging      |
-| **RBAC System**               | Doctors only see their assigned cases          | Flask Auth, Secure Sessions               |
-| **Case History & Versioning** | All AI outputs logged and reproducible         | Audit Trails, MLOps Logging               |
-| **Localization**              | Hindi/English toggle                           | i18n, Cross-Cultural UX                   |
-| **Fully Structured Output**   | JSON-schema ensures reliable downstream usage  | Structure Enforcement, Safety Fields      |
+| Feature                       | Description                        | Tech Keywords                             |
+| ----------------------------- | ---------------------------------- | ----------------------------------------- |
+| **Dual-Language Scribing**    | Patient summary + Doctor SOAP note | Prompt Engineering, NLP, Agentic Workflow |
+| **CSV-Based Local DB**        | Persistent local storage           | MLOps Lite, Logging                       |
+| **RBAC System**               | Doctor/Patient access separation   | Flask Auth, Secure Sessions               |
+| **Case History & Versioning** | Reproducible AI outputs            | Audit Trails                              |
+| **Localization**              | Hindi/English                      | i18n, UX                                  |
+| **Fully Structured Output**   | Deterministic JSON                 | Structure Enforcement                     |
 
 ---
 
@@ -109,20 +106,18 @@ Patient Intake → JSON Prompt → Gemini Model → AI Dual Output
 ## **1. Prerequisites**
 
 * Python 3.9+
-* Google Gemini API Key (from Google AI Studio)
+* Gemini API Key
 
 ---
 
 ## **2. Installation**
-
-Clone and enter the project:
 
 ```bash
 git clone https://github.com/garvit-010/MediAssist_AI_Powered_Scribe.git
 cd MediAssist
 ```
 
-Create and activate a virtual environment:
+Create environment:
 
 ```bash
 python -m venv venv
@@ -140,7 +135,7 @@ pip install -r requirements.txt
 
 ## **3. Environment Setup**
 
-Create a `.env` file:
+Add a `.env` file:
 
 ```
 GEMINI_API_KEY="YOUR_KEY"
@@ -151,13 +146,11 @@ FLASK_SECRET_KEY="ANY_RANDOM_SECURE_KEY"
 
 ## **4. Initialize Data**
 
-Run once to auto-create CSVs + demo accounts:
-
 ```bash
 python app.py
 ```
 
-Demo credentials (preloaded in CSVs) :
+Demo credentials:
 
 | Role    | Username | Password |
 | ------- | -------- | -------- |
@@ -171,76 +164,84 @@ Demo credentials (preloaded in CSVs) :
 
 ### **1. Patient Login**
 
-Visit `/patient/login` → login as **patient1 / p123**
+Go to `/patient/login` → login as **patient1 / p123**
 
 ### **2. Submit Symptoms**
 
-Fill patient details and choose a doctor (e.g., *Dr. Patel*).
+Fill patient details and select a doctor.
 
 ### **3. AI Processing**
 
 System generates:
 
-* Patient summary (Hindi or English)
+* Patient summary
 * Doctor SOAP note
 
 ### **4. Doctor Review**
 
-Logout → login as **dr_patel / patel123**
-
-Doctor dashboard will show:
-
-* Assigned case
-* Timestamp
-* AI-generated SOAP note
+Login as **dr_patel / patel123**
+View the case in the doctor dashboard.
 
 ---
 
-# 📸 UI Previews (Suggested Placement)
+# 📸 UI Previews
 
-**Image 1 – Intake Form (Hindi Mode)**
-*Dual-language form dynamically adapting UI text*
+### **🖼️ Login Page**
 
-**Image 2 – Doctor Dashboard (Case Queue)**
-*Case listing with timestamps and status*
+![Login Page](./assets/Login_Page.jpeg)
 
-**Image 3 – Clinical SOAP Note View**
-*Structured Subjective, Objective, Assessment, Plan sections*
+---
+
+### **🖼️ Intake / Registration Form**
+
+![Registration Form](./assets/reg_form.jpeg)
+
+---
+
+### **🖼️ AI-Generated Summary (Patient View)**
+
+![AI Summary](./assets/AI_summary.jpeg)
+
+---
+
+
+### **🖼️ Doctor Dashboard**
+
+![Doctor Dashboard](./assets/Doc_Dashboard.jpeg)
+
+---
+
+### **🖼️ Clinical SOAP Note**
+
+![SOAP Note](./assets/Doc_Soap.jpeg)
 
 ---
 
 # 🛣️ Future Roadmap
 
-### 🔧 1. Full MLOps Integration
+### 🔧 Full MLOps Integration
 
-* Replace CSV with MLflow/DVC
-* Track prompts, outputs, latencies, model versions
+* MLflow/DVC support
+* Prompt + model version tracking
 
-### ⚡ 2. Asynchronous Tasks
+### ⚡ Asynchronous Tasks
 
-Long-running Gemini calls → move to:
+* Redis + Celery background workers
 
-* Redis + Celery workers
-* Non-blocking UI updates
+### 🎨 UI/UX Improvements
 
-### 🎨 3. Frontend Improvements
+* Enhanced language switching
+* Suggestive symptom input
 
-* Multi-language UI polish
-* Better RTL/LTR handling
-* Dynamic symptom suggestions
+### 🗄️ Database Migration
 
-### 🗄️ 4. Database Migration
-
-Move from CSV → PostgreSQL or Firebase for:
-
-* Scalability
-* Concurrent users
-* Secure medical record storage
+* PostgreSQL / Firebase for scalability
 
 ---
 
 # 📜 License
 
-MIT License — free for modification and commercial use.
+MIT License — free for personal and commercial use.
 
 ---
+

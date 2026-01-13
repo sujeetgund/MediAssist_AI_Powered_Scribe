@@ -8,12 +8,12 @@ import csv
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
-import google.generativeai as genai
+import requests
 from dotenv import load_dotenv
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 app = Flask(__name__)
 # Secret key is required for session management (Doctor Login) and flash messages
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
@@ -27,11 +27,8 @@ db = SQLAlchemy(app)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    logging.warning("WARNING: GEMINI_API_KEY not found in .env")
-
-genai.configure(api_key=api_key)
+# Llama 3 Configuration
+OLLAMA_API_URL = "http://localhost:11434/api/generate"
 
 # MODELS
 class User(db.Model):
@@ -207,7 +204,7 @@ def log_interaction(case_id, inputs, latency):
         log_entry = {
             "timestamp": datetime.now(),
             "case_id": case_id,
-            "model": "gemini-2.5-flash",
+            "model": "llama3",
             "latency_ms": round(latency * 1000, 2),
             "symptoms_snippet": inputs.get('symptoms', '')[:50]
         }
@@ -305,20 +302,34 @@ def patient_submit():
             "language": selected_language
         }
 
-        model = genai.GenerativeModel("gemini-2.5-flash", generation_config={"response_mime_type": "application/json"})
         formatted_prompt = SYSTEM_PROMPT.format(language=selected_language)
         prompt = f"{formatted_prompt}\nPATIENT DATA: {json.dumps(raw_data, default=str)}"
         
-        response = model.generate_content(prompt)
-        
         try:
-            ai_text = response.text.strip()
-            if ai_text.startswith("```"):
-                ai_text = re.sub(r'^```json\s*|\s*```$', '', ai_text, flags=re.MULTILINE)
+            # Call Local Llama 3 via Ollama
+            response = requests.post(OLLAMA_API_URL, json={
+                "model": "llama3",
+                "prompt": prompt,
+                "stream": False,
+                "format": "json"
+            })
+            response.raise_for_status()
+            
+            result = response.json()
+            if 'response' in result:
+                ai_text = result['response']
+            else:
+                 raise ValueError(f"Unexpected response format from Ollama: {result}")
+
             ai_analysis = json.loads(ai_text)
+            
+        except requests.exceptions.ConnectionError:
+            logging.error("Failed to connect to Ollama. Is it running?")
+            flash("AI Service unavailable. Please ensure local Llama 3 (Ollama) is running.", "danger")
+            return redirect(url_for('patient_intake'))
         except Exception as e:
-            logging.error(f"JSON Parsing Failed: {response.text}")
-            flash("AI Service temporarily unavailable. Please try again.", "danger")
+            logging.error(f"Llama 3 Generation or Parsing Failed: {e}")
+            flash("AI processing failed. Please try again.", "danger")
             return redirect(url_for('patient_intake'))
 
         case_record = {
